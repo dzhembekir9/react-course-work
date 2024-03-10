@@ -1,0 +1,7 @@
+.TableHead {
+  @apply text-left py-3 px-4 uppercase font-semibold text-sm;
+}
+
+.TableData {
+  @apply text-left py-3 px-4;
+}

@@ -62,6 +62,6 @@ yarn start
 
 This will start the backend part of Food Lookup, and it will be listening for requests from the frontend on http://localhost:8080.
 
-### License
+## License
 
 This project is licensed under the MIT License.

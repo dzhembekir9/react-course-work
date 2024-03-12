@@ -1,61 +1,69 @@
 'use client'
 
-import Link from 'next/link'
-import { ResultsTable } from './components'
-
-const items = [
-  {
-    id: 1,
-    description: 'Chicken Breast',
-    kcal: 165,
-    protein: 31,
-    fat: 3.6,
-    carbs: 0,
-  },
-  {
-    id: 2,
-    description: 'Broccoli',
-    kcal: 55,
-    protein: 2.8,
-    fat: 0.6,
-    carbs: 6,
-  },
-  {
-    id: 3,
-    description: 'Brown Rice',
-    kcal: 216,
-    protein: 5,
-    fat: 1.8,
-    carbs: 45,
-  },
-  {
-    id: 4,
-    description: 'Egg',
-    kcal: 155,
-    protein: 13,
-    fat: 11,
-    carbs: 1.1,
-  },
-  {
-    id: 5,
-    description: 'Almonds',
-    kcal: 579,
-    protein: 21,
-    fat: 50,
-    carbs: 22,
-  },
-]
+import { useState, useMemo } from 'react'
+import { ResultsTable, Button } from '@/components'
+import { useAllFoods } from '@/hooks'
+import { Food } from '@/types'
 
 export default function Home() {
+  const [selectedFoods, setSelectedFoods] = useState<Food[]>()
+  const [searchPhrase, setSearchPhrase] = useState<string | undefined>('')
+  const { foods, isLoading } = useAllFoods()
+
+  const onClick = (food: Food) => {
+    setSelectedFoods((prev) => {
+      if (prev) {
+        return [...prev, food]
+      }
+      return [food]
+    })
+  }
+
+  const totals = useMemo(() => {
+    return selectedFoods?.reduce(
+      (acc, curr) => {
+        return {
+          kcal: acc.kcal + curr.kcal,
+          protein: acc.protein + curr.protein,
+          fats: acc.fats + curr.fats,
+          carbs: acc.carbs + curr.carbs,
+        }
+      },
+      {
+        kcal: 0,
+        protein: 0,
+        fats: 0,
+        carbs: 0,
+      }
+    )
+  }, [selectedFoods])
+
+  const filteredFoods = useMemo(() => {
+    if (!searchPhrase) {
+      return foods
+    }
+
+    const fFoods = foods?.filter((food) => {
+      if (searchPhrase && food.description.includes(searchPhrase)) return food
+    })
+
+    return fFoods
+  }, [searchPhrase, foods])
+
+  if (isLoading) return <div>Loading...</div>
+
   return (
     <main className="flex min-h-screen flex-col items-center p-24">
-      <ResultsTable items={items} isWithTotalField />
-      <ResultsTable items={[]} isWithSearch />
-      <Link
-        href="add-food"
-        className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900">
-        Add
-      </Link>
+      <ResultsTable foods={selectedFoods} isWithTotalField totals={totals} />
+
+      <ResultsTable
+        foods={filteredFoods}
+        isWithSearch
+        onButtonClick={onClick}
+        setSearchPhrase={setSearchPhrase}
+      />
+
+      <Button href="add-food">Add Food</Button>
     </main>
   )
 }

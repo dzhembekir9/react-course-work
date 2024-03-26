@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import config from '../config'
 
 export const useCreateFood = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -8,7 +9,7 @@ export const useCreateFood = () => {
     setIsLoading(true)
 
     try {
-      await fetch('http://localhost:8080/foods', {
+      await fetch(`${config.API_URL}/foods`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

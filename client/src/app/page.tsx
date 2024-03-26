@@ -1,14 +1,19 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { ResultsTable, Button } from '@/components'
 import { useAllFoods } from '@/hooks'
 import { Food } from '@/types'
+import { useFoodsBySearchPhrase } from '@/hooks/useFoodsBySearchPhrase'
 
 export default function Home() {
   const [selectedFoods, setSelectedFoods] = useState<Food[]>()
   const [searchPhrase, setSearchPhrase] = useState<string | undefined>('')
+  const [foodsToShow, setFoodsToShow] = useState<number>(10)
+  const [foodsToRender, setFoodsToRender] = useState<Food[] | undefined>([])
+
   const { foods, isLoading } = useAllFoods()
+  const { foods: filteredFoods, getFoods } = useFoodsBySearchPhrase()
 
   const onClick = (food: Food) => {
     setSelectedFoods((prev) => {
@@ -38,17 +43,19 @@ export default function Home() {
     )
   }, [selectedFoods])
 
-  const filteredFoods = useMemo(() => {
-    if (!searchPhrase) {
-      return foods
-    }
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setFoodsToShow(10)
+    getFoods(searchPhrase)
+  }
 
-    const fFoods = foods?.filter((food) => {
-      if (searchPhrase && food.description.includes(searchPhrase)) return food
-    })
+  useEffect(() => {
+    setFoodsToRender(foods)
+  }, [foods])
 
-    return fFoods
-  }, [searchPhrase, foods])
+  useEffect(() => {
+    setFoodsToRender(filteredFoods)
+  }, [filteredFoods])
 
   if (isLoading) return <div>Loading...</div>
 
@@ -57,10 +64,13 @@ export default function Home() {
       <ResultsTable foods={selectedFoods} isWithTotalField totals={totals} />
 
       <ResultsTable
-        foods={filteredFoods}
+        foods={foodsToRender}
         isWithSearch
         onButtonClick={onClick}
         setSearchPhrase={setSearchPhrase}
+        onSubmit={onSubmit}
+        foodsToShow={foodsToShow}
+        setFoodsToShow={setFoodsToShow}
       />
 
       <Button href="add-food">Add Food</Button>
